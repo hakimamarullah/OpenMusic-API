@@ -37,7 +37,6 @@ class SongHandler {
           message: error.message,
         }).code(error.statusCode);
       }
-      console.log(error);
       return h.response({
         status: 'error',
         message: 'Maaf, terjadi kegagalan pada server kami.',
