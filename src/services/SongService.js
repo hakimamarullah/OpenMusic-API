@@ -44,9 +44,17 @@ class SongService {
     return result.rows[0];
   }
 
-  async getAllSongs() {
+
+  async getAllSongs({ title, performer }) {
+    const lower = (str) => str.toLowerCase();
+
     const result = await this._pool.query('SELECT * FROM song');
-    return result.rows.map(SongResponse);
+    const finalResult = result.rows.filter((song) =>
+      // eslint-disable-next-line operator-linebreak, implicit-arrow-linebreak
+      (title ? (lower(song.title).includes(lower(title))) : true) &&
+      (performer ? (lower(song.performer).includes(lower(performer))) : true));
+
+    return finalResult.map(SongResponse);
   }
 
   async putSongById(id, {
@@ -75,7 +83,7 @@ class SongService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows[0].id) {
+    if (!result.rows[0]) {
       throw new NotFoundError('Gagal menghapus lagu. Id tidak ditemukan');
     }
   }
