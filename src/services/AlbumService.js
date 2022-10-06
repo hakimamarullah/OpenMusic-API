@@ -31,13 +31,21 @@ class AlbumService {
       values: [id],
     };
 
-    const result = await this._pool.query(query);
+    const querySongs = {
+      text: 'SELECT id, title, performer from song where "albumId" = $1',
+      values: [id],
+    };
 
-    if (!result.rows.length) {
+    const album = await this._pool.query(query);
+    const songs = await this._pool.query(querySongs);
+
+    if (!album.rows.length) {
       throw new NotFoundError('Album tidak ditemukan');
     }
 
-    return result.rows[0];
+    album.rows[0].songs = songs.rows;
+
+    return album.rows[0];
   }
 
   async putAlbumById(id, { name, year }) {
@@ -63,7 +71,7 @@ class AlbumService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows[0].id) {
+    if (!result.rows[0]) {
       throw new NotFoundError('Gagal menghapus album. Id tidak ditemukan');
     }
   }
