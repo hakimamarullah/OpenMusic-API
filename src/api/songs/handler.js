@@ -44,18 +44,18 @@ class SongHandler {
     }
   }
 
+
+
   async getAllSongsHandler(request, h) {
     const { title, performer } = request.query;
     const result = await this._service.getAllSongs({ title, performer });
     return h.response({
-
       status: 'success',
       data: {
         songs: result,
       },
 
     });
-
   }
 
   async getSongByIdHandler(request, h) {
