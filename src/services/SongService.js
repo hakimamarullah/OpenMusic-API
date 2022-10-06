@@ -44,7 +44,6 @@ class SongService {
     return result.rows[0];
   }
 
-
   async getAllSongs({ title, performer }) {
     const lower = (str) => str.toLowerCase();
 
