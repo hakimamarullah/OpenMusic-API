@@ -7,8 +7,9 @@ const NotFoundError = require('../exceptions/NotFoundError');
 const SongPlaylistResponse = require('../utils/SongPlaylistResponse');
 
 class PlaylistService {
-  constructor() {
+  constructor(collaborationService) {
     this.pool = new Pool();
+    this.collaborationService = collaborationService;
   }
 
   async addPlaylist({
@@ -84,6 +85,18 @@ class PlaylistService {
     return songPlaylistResponse;
   }
 
+  async deleteSongPlaylistBySongId(id, songId) {
+    const query = {
+      text: 'DELETE FROM playlist_songs WHERE playlist_id = $1 AND song_id = $2',
+      values: [id, songId],
+    };
+
+    const result = await this.pool.query(query);
+    if (!result.rows.length) {
+      throw new NotFoundError('Song gagal dihapus. Id tidak ditemukan');
+    }
+  }
+
   async verifyPlaylistOwner(id, owner) {
     const query = {
       text: 'SELECT * FROM playlists WHERE id = $1',
@@ -99,15 +112,15 @@ class PlaylistService {
     }
   }
 
-  async verifyPlaylistAccess(noteId, userId) {
+  async verifyPlaylistAccess(playlistId, userId) {
     try {
-      await this.verifyPlaylistOwner(noteId, userId);
+      await this.verifyPlaylistOwner(playlistId, userId);
     } catch (error) {
       if (error instanceof NotFoundError) {
         throw error;
       }
       try {
-        await this.collaborationService.verifyCollaborator(noteId, userId);
+        await this.collaborationService.verifyCollaborator(playlistId, userId);
       } catch {
         throw error;
       }
