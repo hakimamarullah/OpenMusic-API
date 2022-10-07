@@ -13,92 +13,52 @@ class AlbumHandler {
   }
 
   async postAlbumHandler(request, h) {
-    try {
-      this._validator.validateAlbumPayload(request.payload);
-      const { name, year } = request.payload;
+    this._validator.validateAlbumPayload(request.payload);
+    const { name, year } = request.payload;
 
-      const albumId = await this._service.addAlbum({ name, year });
+    const albumId = await this._service.addAlbum({ name, year });
 
-      return h.response({
-        status: 'success',
-        data: {
-          albumId,
-        },
-      }).code(201);
-    } catch (error) {
-      if (error instanceof ClientError) {
-        return h.response({
-          status: 'fail',
-          message: error.message,
-        }).code(error.statusCode);
-      }
-      return h.response({
-        status: 'error',
-        message: 'Maaf, terjadi kegagalan pada server kami.',
-      }).code(500);
-    }
+    return h.response({
+      status: 'success',
+      data: {
+        albumId,
+      },
+    }).code(201);
   }
 
   async getAlbumByIdHandler(request, h) {
-    try {
-      const { id } = request.params;
+    const { id } = request.params;
 
-      const result = await this._service.getAlbumById(id);
+    const result = await this._service.getAlbumById(id);
 
-      return h.response({
-        status: 'success',
-        data: {
-          album: result,
-        },
-      }).code(200);
-    } catch (error) {
-      return h.response({
-        status: 'fail',
-        message: error.message,
-      }).code(404);
-    }
+    return h.response({
+      status: 'success',
+      data: {
+        album: result,
+      },
+    }).code(200);
   }
 
   async putAlbumByIdHandler(request, h) {
-    try {
-      this._validator.validateAlbumPayload(request.payload);
-      const { name, year } = request.payload;
-      const { id } = request.params;
+    this._validator.validateAlbumPayload(request.payload);
+    const { name, year } = request.payload;
+    const { id } = request.params;
 
-      const result = await this._service.putAlbumById(id, { name, year });
+    const result = await this._service.putAlbumById(id, { name, year });
 
-      return h.response({
-        status: 'success',
-        message: `Album ${result} berhasil diubah`,
-      }).code(200);
-    } catch (error) {
-      if (error instanceof ClientError) {
-        return h.response({
-          status: 'fail',
-          message: error.message,
-        }).code(error.statusCode);
-      }
-      return h.response({
-        status: 'error',
-        message: 'Maaf, terjadi kegagalan pada server kami.',
-      }).code(500);
-    }
+    return h.response({
+      status: 'success',
+      message: `Album ${result} berhasil diubah`,
+    }).code(200);
   }
 
   async deleteAlbumByIdHandler(request, h) {
-    try {
-      const { id } = request.params;
-      await this._service.deleteAlbumById(id);
-      return h.response({
-        status: 'success',
-        message: `Album ${id} berhasil dihapus`,
-      }).code(200);
-    } catch (error) {
-      return h.response({
-        status: 'fail',
-        message: error.message,
-      }).code(404);
-    }
+    const { id } = request.params;
+    await this._service.deleteAlbumById(id);
+    return h.response({
+      status: 'success',
+      message: `Album ${id} berhasil dihapus`,
+    }).code(200);
   }
 }
 
