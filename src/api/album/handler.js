@@ -1,10 +1,7 @@
-const ClientError = require('../../exceptions/ClientError');
-
-/* eslint-disable no-underscore-dangle */
 class AlbumHandler {
   constructor(service, validator) {
-    this._service = service;
-    this._validator = validator;
+    this.service = service;
+    this.validator = validator;
 
     this.postAlbumHandler = this.postAlbumHandler.bind(this);
     this.getAlbumByIdHandler = this.getAlbumByIdHandler.bind(this);
@@ -13,10 +10,10 @@ class AlbumHandler {
   }
 
   async postAlbumHandler(request, h) {
-    this._validator.validateAlbumPayload(request.payload);
+    this.validator.validateAlbumPayload(request.payload);
     const { name, year } = request.payload;
 
-    const albumId = await this._service.addAlbum({ name, year });
+    const albumId = await this.service.addAlbum({ name, year });
 
     return h.response({
       status: 'success',
@@ -29,7 +26,7 @@ class AlbumHandler {
   async getAlbumByIdHandler(request, h) {
     const { id } = request.params;
 
-    const result = await this._service.getAlbumById(id);
+    const result = await this.service.getAlbumById(id);
 
     return h.response({
       status: 'success',
@@ -40,11 +37,11 @@ class AlbumHandler {
   }
 
   async putAlbumByIdHandler(request, h) {
-    this._validator.validateAlbumPayload(request.payload);
+    this.validator.validateAlbumPayload(request.payload);
     const { name, year } = request.payload;
     const { id } = request.params;
 
-    const result = await this._service.putAlbumById(id, { name, year });
+    const result = await this.service.putAlbumById(id, { name, year });
 
     return h.response({
       status: 'success',
@@ -54,7 +51,7 @@ class AlbumHandler {
 
   async deleteAlbumByIdHandler(request, h) {
     const { id } = request.params;
-    await this._service.deleteAlbumById(id);
+    await this.service.deleteAlbumById(id);
     return h.response({
       status: 'success',
       message: `Album ${id} berhasil dihapus`,
