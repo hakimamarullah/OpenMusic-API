@@ -105,7 +105,7 @@ const init = async () => {
     {
       plugin: playlists,
       options: {
-        playlistService,
+        service: playlistService,
         validator: PlaylistValidator,
       },
     },
@@ -140,6 +140,7 @@ const init = async () => {
     // jika bukan error, lanjutkan dengan response sebelumnya (tanpa terintervensi)
     return h.continue;
   });
+
   await server.start();
 
   // eslint-disable-next-line no-console
