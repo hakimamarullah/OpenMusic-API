@@ -22,6 +22,11 @@ const TokenManager = require('./tokenize/TokenManager');
 const AuthenticationsValidator = require('./validator/authentications');
 const AuthenticationService = require('./services/AuthenticationService');
 
+// Playlist
+const playlists = require('./api/playlists');
+const PlaylistValidator = require('./validator/playlist');
+const PlaylistService = require('./services/PlaylistService');
+
 // ERROR
 const ClientError = require('./exceptions/ClientError');
 
@@ -30,6 +35,7 @@ require('dotenv').config();
 const init = async () => {
   const authenticationsService = new AuthenticationService();
   const usersService = new UsersService();
+  const playlistService = new PlaylistService();
   const config = {
     host: process.env.HOST,
     port: process.env.PORT,
@@ -96,7 +102,15 @@ const init = async () => {
         validator: AuthenticationsValidator,
       },
     },
+    {
+      plugin: playlists,
+      options: {
+        playlistService,
+        validator: PlaylistValidator,
+      },
+    },
   ]);
+
   server.ext('onPreResponse', (request, h) => {
     // mendapatkan konteks response dari request
     const { response } = request;
@@ -119,6 +133,7 @@ const init = async () => {
         status: 'error',
         message: 'terjadi kegagalan pada server kami',
       });
+      console.log(response);
       newResponse.code(500);
       return newResponse;
     }
