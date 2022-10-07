@@ -1,10 +1,26 @@
 const Hapi = require('@hapi/hapi');
+const Jwt = require('@hapi/jwt');
+
+// Album
 const album = require('./api/album');
-const songs = require('./api/songs');
 const AlbumService = require('./services/AlbumService');
-const SongService = require('./services/SongService');
 const AlbumValidator = require('./validator/album');
+
+// Song
+const songs = require('./api/songs');
+const SongService = require('./services/SongService');
 const SongValidator = require('./validator/song');
+
+// Users
+const UsersService = require('./services/UserService');
+const users = require('./api/users');
+const UserValidator = require('./validator/users');
+
+// Authentication
+const authentications = require('./api/authentications');
+const TokenManager = require('./tokenize/TokenManager');
+const AuthenticationsValidator = require('./validator/authentications');
+const AuthenticationService = require('./services/AuthenticationService');
 
 // ERROR
 const ClientError = require('./exceptions/ClientError');
@@ -12,6 +28,8 @@ const ClientError = require('./exceptions/ClientError');
 require('dotenv').config();
 
 const init = async () => {
+  const authenticationsService = new AuthenticationService();
+  const usersService = new UsersService();
   const config = {
     host: process.env.HOST,
     port: process.env.PORT,
@@ -24,6 +42,28 @@ const init = async () => {
   };
 
   const server = Hapi.server(config);
+  await server.register([
+    {
+      plugin: Jwt,
+    },
+  ]);
+
+  // mendefinisikan strategy autentikasi jwt
+  server.auth.strategy('openmusic_jwt', 'jwt', {
+    keys: process.env.ACCESS_TOKEN_KEY,
+    verify: {
+      aud: false,
+      iss: false,
+      sub: false,
+      maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+    },
+    validate: (artifacts) => ({
+      isValid: true,
+      credentials: {
+        id: artifacts.decoded.payload.id,
+      },
+    }),
+  });
 
   await server.register([
     {
@@ -38,6 +78,22 @@ const init = async () => {
       options: {
         service: new SongService(),
         validator: SongValidator,
+      },
+    },
+    {
+      plugin: users,
+      options: {
+        service: new UsersService(),
+        validator: UserValidator,
+      },
+    },
+    {
+      plugin: authentications,
+      options: {
+        authenticationsService,
+        usersService,
+        tokenManager: TokenManager,
+        validator: AuthenticationsValidator,
       },
     },
   ]);
