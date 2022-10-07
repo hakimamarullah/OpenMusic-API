@@ -1,5 +1,3 @@
-const { payload } = require("@hapi/hapi/lib/validation");
-
 class PlaylistsHandler {
   constructor(service, validator) {
     this.service = service;
