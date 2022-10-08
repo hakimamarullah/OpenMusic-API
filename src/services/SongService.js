@@ -1,4 +1,3 @@
-/* eslint-disable no-underscore-dangle */
 const { nanoid } = require('nanoid');
 const { Pool } = require('pg');
 const InvariantError = require('../exceptions/InvariantError');
@@ -7,7 +6,7 @@ const SongResponse = require('../utils/SongResponse');
 
 class SongService {
   constructor() {
-    this._pool = new Pool();
+    this.pool = new Pool();
   }
 
   async addSong({
@@ -20,7 +19,7 @@ class SongService {
       values: [id, title, year, genre, performer, duration, albumId],
     };
 
-    const result = await this._pool.query(query);
+    const result = await this.pool.query(query);
 
     if (!result.rows[0].id) {
       throw new InvariantError('Lagu gagal ditambahkan');
@@ -35,7 +34,7 @@ class SongService {
       values: [id],
     };
 
-    const result = await this._pool.query(query);
+    const result = await this.pool.query(query);
 
     if (!result.rows.length) {
       throw new NotFoundError('Lagu tidak ditemukan');
@@ -46,12 +45,12 @@ class SongService {
 
   async getAllSongs({ title, performer }) {
     const lower = (str) => str.toLowerCase();
+    const queryTitle = (song) => (title ? (lower(song.title).includes(lower(title))) : true);
+    const queryPerformer = (song) => (performer
+      ? (lower(song.performer).includes(lower(performer))) : true);
 
-    const result = await this._pool.query('SELECT * FROM song');
-    const finalResult = result.rows.filter((song) =>
-      // eslint-disable-next-line operator-linebreak, implicit-arrow-linebreak
-      (title ? (lower(song.title).includes(lower(title))) : true) &&
-      (performer ? (lower(song.performer).includes(lower(performer))) : true));
+    const result = await this.pool.query('SELECT * FROM song');
+    const finalResult = result.rows.filter((song) => queryTitle(song) && queryPerformer(song));
 
     return finalResult.map(SongResponse);
   }
@@ -65,7 +64,7 @@ class SongService {
       values: [id, title, year, genre, performer, duration, albumId],
     };
 
-    const result = await this._pool.query(query);
+    const result = await this.pool.query(query);
 
     if (!result.rows.length) {
       throw new NotFoundError('Gagal update lagu. Id tidak ditemukan');
@@ -80,7 +79,7 @@ class SongService {
       values: [id],
     };
 
-    const result = await this._pool.query(query);
+    const result = await this.pool.query(query);
 
     if (!result.rows[0]) {
       throw new NotFoundError('Gagal menghapus lagu. Id tidak ditemukan');
