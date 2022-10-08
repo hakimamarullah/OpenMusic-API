@@ -27,15 +27,23 @@ const playlists = require('./api/playlists');
 const PlaylistValidator = require('./validator/playlist');
 const PlaylistService = require('./services/PlaylistService');
 
+
+// Collaboration
+const collaborations = require('./api/collaborations');
+const CollaborationsService = require('./services/CollaborationsService');
+const CollaborationsValidator = require('./validator/collaborations');
+
 // ERROR
 const ClientError = require('./exceptions/ClientError');
 
 require('dotenv').config();
 
 const init = async () => {
+  const collaborationsService = new CollaborationsService();
   const authenticationsService = new AuthenticationService();
   const usersService = new UsersService();
-  const playlistService = new PlaylistService();
+  const playlistService = new PlaylistService(collaborationsService);
+
   const config = {
     host: process.env.HOST,
     port: process.env.PORT,
@@ -107,6 +115,14 @@ const init = async () => {
       options: {
         service: playlistService,
         validator: PlaylistValidator,
+      },
+    },
+    {
+      plugin: collaborations,
+      options: {
+        collaborationsService,
+        playlistService,
+        validator: CollaborationsValidator,
       },
     },
   ]);
