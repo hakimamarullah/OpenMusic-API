@@ -57,7 +57,6 @@ class PlaylistsHandler {
     };
   }
 
-
   async postSongPlaylistHandler(request, h) {
     const { id: credentialId } = request.auth.credentials;
     const { id } = request.params;

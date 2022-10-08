@@ -1,4 +1,3 @@
-/* eslint-disable no-underscore-dangle */
 const { nanoid } = require('nanoid');
 const { Pool } = require('pg');
 const AuthorizationError = require('../exceptions/AuthorizationError');
@@ -139,7 +138,6 @@ class PlaylistService {
       }
     }
   }
-
 
   async getPlaylistActivities(id) {
     const query = {
