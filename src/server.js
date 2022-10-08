@@ -27,7 +27,6 @@ const playlists = require('./api/playlists');
 const PlaylistValidator = require('./validator/playlist');
 const PlaylistService = require('./services/PlaylistService');
 
-
 // Collaboration
 const collaborations = require('./api/collaborations');
 const CollaborationsService = require('./services/CollaborationsService');
