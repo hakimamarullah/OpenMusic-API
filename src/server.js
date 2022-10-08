@@ -27,6 +27,7 @@ const playlists = require('./api/playlists');
 const PlaylistValidator = require('./validator/playlist');
 const PlaylistService = require('./services/PlaylistService');
 
+
 // Collaboration
 const collaborations = require('./api/collaborations');
 const CollaborationsService = require('./services/CollaborationsService');
@@ -42,6 +43,7 @@ const init = async () => {
   const authenticationsService = new AuthenticationService();
   const usersService = new UsersService();
   const playlistService = new PlaylistService(collaborationsService);
+
   const config = {
     host: process.env.HOST,
     port: process.env.PORT,

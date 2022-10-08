@@ -140,6 +140,7 @@ class PlaylistService {
     }
   }
 
+
   async getPlaylistActivities(id) {
     const query = {
       text: `SELECT pa.playlist_id, us.username, pa.action, pa.time, s.title
