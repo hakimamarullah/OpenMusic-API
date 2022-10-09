@@ -1,5 +1,7 @@
 const Hapi = require('@hapi/hapi');
 const Jwt = require('@hapi/jwt');
+const path = require('path');
+const Inert = require('@hapi/inert');
 
 // Album
 const album = require('./api/album');
@@ -27,12 +29,16 @@ const playlists = require('./api/playlists');
 const PlaylistValidator = require('./validator/playlist');
 const PlaylistService = require('./services/PlaylistService');
 
-
 // Exports
 // eslint-disable-next-line no-underscore-dangle
 const _exports = require('./api/exports');
 const ProducerService = require('./services/ProducerService');
 const ExportsValidator = require('./validator/exports');
+
+// Uploads
+const uploads = require('./api/uploads');
+const StorageLocalService = require('./services/StorageLocalService');
+const UploadsValidator = require('./validator/uploads');
 
 // Collaboration
 const collaborations = require('./api/collaborations');
@@ -46,10 +52,12 @@ const ClientError = require('./exceptions/ClientError');
 const configs = require('./utils/config');
 
 const init = async () => {
+  const albumService = new AlbumService();
   const collaborationsService = new CollaborationsService();
   const authenticationsService = new AuthenticationService();
   const usersService = new UsersService();
   const playlistService = new PlaylistService(collaborationsService);
+  const storageLocalService = new StorageLocalService(path.resolve(__dirname, 'api/uploads/file/images'));
 
   const config = {
     host: configs.app.host,
@@ -66,6 +74,9 @@ const init = async () => {
   await server.register([
     {
       plugin: Jwt,
+    },
+    {
+      plugin: Inert,
     },
   ]);
 
@@ -138,6 +149,14 @@ const init = async () => {
         service: ProducerService,
         validator: ExportsValidator,
         playlistService,
+      },
+    },
+    {
+      plugin: uploads,
+      options: {
+        service: storageLocalService,
+        validator: UploadsValidator,
+        albumService,
       },
     },
   ]);

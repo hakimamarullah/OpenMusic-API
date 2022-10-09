@@ -2,6 +2,7 @@ const { nanoid } = require('nanoid');
 const { Pool } = require('pg');
 const InvariantError = require('../exceptions/InvariantError');
 const NotFoundError = require('../exceptions/NotFoundError');
+const configs = require('../utils/config');
 
 class AlbumService {
   constructor() {
@@ -73,6 +74,16 @@ class AlbumService {
     if (!result.rows[0]) {
       throw new NotFoundError('Gagal menghapus album. Id tidak ditemukan');
     }
+  }
+
+  async saveAlbumCoverImageUrl(id, filename) {
+    const coverUrl = `${configs.upload.albumURL}/${filename}`;
+    const query = {
+      text: 'UPDATE album SET "coverUrl" = $1 WHERE id = $2',
+      values: [coverUrl, id],
+    };
+
+    await this.pool.query(query);
   }
 }
 module.exports = AlbumService;
