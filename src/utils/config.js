@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const configs = {
   app: {
     host: process.env.HOST,
@@ -9,11 +11,11 @@ const configs = {
     refresh_token_key: process.env.REFRESH_TOKEN_KEY,
     access_token_age: process.env.ACCESS_TOKEN_AGE,
   },
-  redis: {
-    host: '',
+  rabbitMq: {
+    server: process.env.RABBITMQ_SERVER,
   },
-  rabbitmq: {
-    host: '',
+  redis: {
+    host: process.env.REDIS_SERVER,
   },
 };
 

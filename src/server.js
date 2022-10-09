@@ -27,6 +27,12 @@ const playlists = require('./api/playlists');
 const PlaylistValidator = require('./validator/playlist');
 const PlaylistService = require('./services/PlaylistService');
 
+// Exports
+// eslint-disable-next-line no-underscore-dangle
+const _exports = require('./api/exports');
+const ProducerService = require('./services/ProducerService');
+const ExportsValidator = require('./validator/exports');
+
 // Collaboration
 const collaborations = require('./api/collaborations');
 const CollaborationsService = require('./services/CollaborationsService');
@@ -45,8 +51,8 @@ const init = async () => {
   const playlistService = new PlaylistService(collaborationsService);
 
   const config = {
-    host: configs.app.HOST,
-    port: configs.app.PORT,
+    host: configs.app.host,
+    port: configs.app.port,
     routes: {
       cors: {
         origin: ['*'],
@@ -64,12 +70,12 @@ const init = async () => {
 
   // mendefinisikan strategy autentikasi jwt
   server.auth.strategy('openmusic_jwt', 'jwt', {
-    keys: configs.jwt.ACCESS_TOKEN_KEY,
+    keys: configs.jwt.access_token_key,
     verify: {
       aud: false,
       iss: false,
       sub: false,
-      maxAgeSec: configs.jwt.ACCESS_TOKEN_AGE,
+      maxAgeSec: configs.jwt.access_token_age,
     },
     validate: (artifacts) => ({
       isValid: true,
@@ -125,6 +131,13 @@ const init = async () => {
         validator: CollaborationsValidator,
       },
     },
+    {
+      plugin: _exports,
+      options: {
+        service: ProducerService,
+        validator: ExportsValidator,
+      },
+    },
   ]);
 
   server.ext('onPreResponse', (request, h) => {
@@ -160,7 +173,7 @@ const init = async () => {
   await server.start();
 
   // eslint-disable-next-line no-console
-  console.log(`OpenMusic ${configs.app.VERSION} is running at ${server.info.uri}...`);
+  console.log(`OpenMusic ${configs.app.version} is running at ${server.info.uri}...`);
 };
 
 init();
