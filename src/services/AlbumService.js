@@ -85,5 +85,40 @@ class AlbumService {
 
     await this.pool.query(query);
   }
+
+  async postAlbumLike(id, userId) {
+    const query = {
+      text: 'INSERT INTO user_album_likes(album_id, user_id) values($1, $2)',
+      values: [id, userId],
+    };
+
+    try {
+      await this.pool.query(query);
+      return 'Berhasil menyukai album';
+    } catch (error) {
+      if (error.code === '23503') {
+        throw new NotFoundError('User atau album tidak ditemukan');
+      }
+
+      const deleteQuery = {
+        text: 'DELETE FROM user_album_likes WHERE user_id = $1 AND album_id = $2',
+        values: [userId, id],
+      };
+
+      await this.pool.query(deleteQuery);
+      return 'Batal menyukai album';
+    }
+  }
+
+  async getAlbumLikesCount(id) {
+    const query = {
+      text: 'SELECT COUNT(*) FROM user_album_likes WHERE album_id = $1',
+      values: [id],
+    };
+
+    const { rows } = await this.pool.query(query);
+
+    return { likes: parseInt(rows[0].count, 10) };
+  }
 }
 module.exports = AlbumService;

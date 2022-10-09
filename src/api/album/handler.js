@@ -55,6 +55,26 @@ class AlbumHandler {
       message: `Album ${id} berhasil dihapus`,
     }).code(200);
   }
+
+  async postAlbumLikeHandler(request, h) {
+    const { id: userId } = request.auth.credentials;
+    const { id: albumId } = request.params;
+
+    const result = await this.service.postAlbumLike(albumId, userId);
+
+    return h.response({
+      status: 'success',
+      message: result,
+    }).code(201);
+  }
+
+  async getAlbumLikesCountHandler({ params }) {
+    const likes = await this.service.getAlbumLikesCount(params.id);
+    return {
+      status: 'success',
+      data: likes,
+    };
+  }
 }
 
 module.exports = AlbumHandler;
