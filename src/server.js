@@ -35,7 +35,8 @@ const CollaborationsValidator = require('./validator/collaborations');
 // ERROR
 const ClientError = require('./exceptions/ClientError');
 
-require('dotenv').config();
+// Config
+const configs = require('./utils/config');
 
 const init = async () => {
   const collaborationsService = new CollaborationsService();
@@ -44,8 +45,8 @@ const init = async () => {
   const playlistService = new PlaylistService(collaborationsService);
 
   const config = {
-    host: process.env.HOST,
-    port: process.env.PORT,
+    host: configs.app.HOST,
+    port: configs.app.PORT,
     routes: {
       cors: {
         origin: ['*'],
@@ -63,12 +64,12 @@ const init = async () => {
 
   // mendefinisikan strategy autentikasi jwt
   server.auth.strategy('openmusic_jwt', 'jwt', {
-    keys: process.env.ACCESS_TOKEN_KEY,
+    keys: configs.jwt.ACCESS_TOKEN_KEY,
     verify: {
       aud: false,
       iss: false,
       sub: false,
-      maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+      maxAgeSec: configs.jwt.ACCESS_TOKEN_AGE,
     },
     validate: (artifacts) => ({
       isValid: true,
@@ -159,7 +160,7 @@ const init = async () => {
   await server.start();
 
   // eslint-disable-next-line no-console
-  console.log(`OpenMusic ${process.env.VERSION} is running at ${server.info.uri}...`);
+  console.log(`OpenMusic ${configs.app.VERSION} is running at ${server.info.uri}...`);
 };
 
 init();
