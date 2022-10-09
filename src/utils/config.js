@@ -17,6 +17,9 @@ const configs = {
   redis: {
     host: process.env.REDIS_SERVER,
   },
+  upload: {
+    albumURL: process.env.UPLOAD_URL || `http://${process.env.HOST}:${process.env.PORT}/uploads/albums/cover/images`,
+  },
 };
 
 module.exports = configs;
