@@ -16,6 +16,7 @@ const TokenManager = {
       throw new InvariantError('Refresh token tidak valid');
     }
   },
+  decodeRefreshToken: (refreshToken) => Jwt.token.decode(refreshToken).decoded,
 };
 
 module.exports = TokenManager;

@@ -5,8 +5,9 @@ const NotFoundError = require('../exceptions/NotFoundError');
 const configs = require('../utils/config');
 
 class AlbumService {
-  constructor() {
+  constructor(cacheService) {
     this.pool = new Pool();
+    this.cacheService = cacheService;
   }
 
   async addAlbum({ name, year }) {
@@ -26,26 +27,31 @@ class AlbumService {
   }
 
   async getAlbumById(id) {
-    const query = {
-      text: 'SELECT * FROM album where id = $1',
-      values: [id],
-    };
+    try {
+      const result = await this.cacheService.get(`album:${id}`);
+      return JSON.parse(result);
+    } catch (error) {
+      const query = {
+        text: 'SELECT * FROM album where id = $1',
+        values: [id],
+      };
 
-    const querySongs = {
-      text: 'SELECT id, title, performer from song where "albumId" = $1',
-      values: [id],
-    };
+      const querySongs = {
+        text: 'SELECT id, title, performer from song where "albumId" = $1',
+        values: [id],
+      };
 
-    const album = await this.pool.query(query);
-    const songs = await this.pool.query(querySongs);
+      const album = await this.pool.query(query);
+      const songs = await this.pool.query(querySongs);
 
-    if (!album.rows.length) {
-      throw new NotFoundError('Album tidak ditemukan');
+      if (!album.rows.length) {
+        throw new NotFoundError('Album tidak ditemukan');
+      }
+
+      album.rows[0].songs = songs.rows;
+      await this.cacheService.set(`album:${id}`, JSON.stringify(album.rows[0]));
+      return album.rows[0];
     }
-
-    album.rows[0].songs = songs.rows;
-
-    return album.rows[0];
   }
 
   async putAlbumById(id, { name, year }) {
@@ -59,7 +65,7 @@ class AlbumService {
     if (!result.rows.length) {
       throw new NotFoundError('Gagal update album. Id tidak ditemukan');
     }
-
+    await this.cacheService.delete(`album:${id}`);
     return result.rows[0].id;
   }
 
@@ -74,6 +80,7 @@ class AlbumService {
     if (!result.rows[0]) {
       throw new NotFoundError('Gagal menghapus album. Id tidak ditemukan');
     }
+    await this.cacheService.delete(`album:${id}`);
   }
 
   async saveAlbumCoverImageUrl(id, filename) {
@@ -84,6 +91,7 @@ class AlbumService {
     };
 
     await this.pool.query(query);
+    await this.cacheService.delete(`album:${id}`);
   }
 
   async postAlbumLike(id, userId) {
@@ -107,18 +115,30 @@ class AlbumService {
 
       await this.pool.query(deleteQuery);
       return 'Batal menyukai album';
+    } finally {
+      await this.cacheService.delete(`albumLikes:${id}`);
     }
   }
 
   async getAlbumLikesCount(id) {
-    const query = {
-      text: 'SELECT COUNT(*) FROM user_album_likes WHERE album_id = $1',
-      values: [id],
-    };
+    try {
+      const result = await this.cacheService.get(`albumLikes:${id}`);
+      return {
+        datasource: 'cache',
+        data: { likes: parseInt(result, 10) },
+      };
+    } catch (error) {
+      const query = {
+        text: 'SELECT COUNT(*) FROM user_album_likes WHERE album_id = $1',
+        values: [id],
+      };
 
-    const { rows } = await this.pool.query(query);
+      const { rows } = await this.pool.query(query);
 
-    return { likes: parseInt(rows[0].count, 10) };
+      await this.cacheService.set(`albumLikes:${id}`, rows[0].count);
+
+      return { datasource: 'N/A', data: { likes: parseInt(rows[0].count, 10) } };
+    }
   }
 }
 module.exports = AlbumService;

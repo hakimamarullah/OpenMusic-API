@@ -48,15 +48,19 @@ const CollaborationsValidator = require('./validator/collaborations');
 // ERROR
 const ClientError = require('./exceptions/ClientError');
 
+// Cache
+const CacheService = require('./services/CacheService');
+
 // Config
 const configs = require('./utils/config');
 
 const init = async () => {
-  const albumService = new AlbumService();
-  const collaborationsService = new CollaborationsService();
-  const authenticationsService = new AuthenticationService();
-  const usersService = new UsersService();
-  const playlistService = new PlaylistService(collaborationsService);
+  const cacheService = new CacheService();
+  const albumService = new AlbumService(cacheService);
+  const collaborationsService = new CollaborationsService(cacheService);
+  const authenticationsService = new AuthenticationService(cacheService);
+  const usersService = new UsersService(cacheService);
+  const playlistService = new PlaylistService(collaborationsService, cacheService);
   const storageLocalService = new StorageLocalService(path.resolve(__dirname, 'api/uploads/file/images'));
 
   const config = {
@@ -101,21 +105,21 @@ const init = async () => {
     {
       plugin: album,
       options: {
-        service: new AlbumService(),
+        service: albumService,
         validator: AlbumValidator,
       },
     },
     {
       plugin: songs,
       options: {
-        service: new SongService(),
+        service: new SongService(cacheService),
         validator: SongValidator,
       },
     },
     {
       plugin: users,
       options: {
-        service: new UsersService(),
+        service: new UsersService(cacheService),
         validator: UserValidator,
       },
     },
@@ -167,12 +171,10 @@ const init = async () => {
     if (response instanceof Error) {
       // penanganan client error secara internal.
       if (response instanceof ClientError) {
-        const newResponse = h.response({
+        return h.response({
           status: 'fail',
           message: response.message,
-        });
-        newResponse.code(response.statusCode);
-        return newResponse;
+        }).code(response.statusCode);
       }
       // mempertahankan penanganan client error oleh hapi secara native, seperti 404, etc.
       if (!response.isServer) {
@@ -187,6 +189,9 @@ const init = async () => {
       newResponse.code(500);
       return newResponse;
     }
+    // SET HEADER Cache-Control
+    request.response.header('Cache-Control', `max-age=${configs.cache.max_age}`);
+
     // jika bukan error, lanjutkan dengan response sebelumnya (tanpa terintervensi)
     return h.continue;
   });

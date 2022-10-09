@@ -7,11 +7,9 @@ class UserHandler {
     autoBind(this);
   }
 
-  async postUserHandler(request, h) {
-    this.validator.validateUserPayload(request.payload);
-    const { username, password, fullname } = request.payload;
-
-    const result = await this.service.addUser({ username, password, fullname });
+  async postUserHandler({ payload }, h) {
+    this.validator.validateUserPayload(payload);
+    const result = await this.service.addUser(payload);
 
     return h.response({
       status: 'success',
@@ -22,20 +20,19 @@ class UserHandler {
     }).code(201);
   }
 
-  async getUserByIdHandler(request, h) {
-    const { id } = request.params;
-    const user = await this.service.getUserByUserId(id);
+  async getUserByIdHandler({ params }) {
+    const user = await this.service.getUserByUserId(params.id);
 
-    return h.response({
+    return {
       status: 'success',
       data: {
         user,
       },
-    }).code(200);
+    };
   }
 
-  async getUsersByUsernameHandler(request) {
-    const { username = '' } = request.query;
+  async getUsersByUsernameHandler({ query }) {
+    const { username = '' } = query;
     const users = await this.service.getUsersByUsername(username);
     return {
       status: 'success',

@@ -20,6 +20,9 @@ const configs = {
   upload: {
     albumURL: process.env.UPLOAD_URL || `http://${process.env.HOST}:${process.env.PORT}/uploads/albums/cover/images`,
   },
+  cache: {
+    max_age: process.env.CACHE_MAX_AGE || 1800,
+  },
 };
 
 module.exports = configs;

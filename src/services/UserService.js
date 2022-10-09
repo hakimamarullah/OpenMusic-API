@@ -6,8 +6,9 @@ const InvariantError = require('../exceptions/InvariantError');
 const AuthenticationError = require('../exceptions/AuthenticationError');
 
 class UsersService {
-  constructor() {
+  constructor(cacheService) {
     this.pool = new Pool();
+    this.cacheService = cacheService;
   }
 
   async addUser({ username, password, fullname }) {
@@ -20,28 +21,34 @@ class UsersService {
       values: [id, username, hashedPassword, fullname],
     };
 
-    const result = await this.pool.query(query);
+    const { rows } = await this.pool.query(query);
 
-    if (!result.rows.length) {
+    if (!rows.length) {
       throw new InvariantError('User gagal ditambahkan');
     }
-
-    return result.rows[0].id;
+    await this.cacheService.delete('users');
+    return rows[0].id;
   }
 
   async getUserByUserId(userId) {
-    const query = {
-      text: 'SELECT id, username, fullname FROM users where id = $1',
-      values: [userId],
-    };
+    try {
+      const result = await this.cacheService.get(`user:${userId}`);
+      return JSON.parse(result);
+    } catch (error) {
+      const query = {
+        text: 'SELECT id, username, fullname FROM users where id = $1',
+        values: [userId],
+      };
 
-    const result = await this.pool.query(query);
+      const { rows } = await this.pool.query(query);
 
-    if (!result.rows.length) {
-      throw new NotFoundError('User tidak ditemukan');
+      if (!rows.length) {
+        throw new NotFoundError('User tidak ditemukan');
+      }
+
+      await this.cacheService.set(`user:${userId}`, JSON.stringify(rows[0]));
+      return rows[0];
     }
-
-    return result.rows[0];
   }
 
   async verifyNewUsername(username) {
@@ -79,12 +86,18 @@ class UsersService {
   }
 
   async getUsersByUsername(username) {
-    const query = {
-      text: 'SELECT id, username, fullname FROM users WHERE username LIKE $1',
-      values: [`%${username}%`],
-    };
-    const result = await this.pool.query(query);
-    return result.rows;
+    try {
+      const result = await this.cacheService.get('users');
+      return JSON.parse(result);
+    } catch (error) {
+      const query = {
+        text: 'SELECT id, username, fullname FROM users WHERE username LIKE $1',
+        values: [`%${username}%`],
+      };
+      const { rows } = await this.pool.query(query);
+      await this.cacheService.set('users', JSON.stringify(rows));
+      return rows;
+    }
   }
 }
 

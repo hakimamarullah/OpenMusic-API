@@ -68,12 +68,14 @@ class AlbumHandler {
     }).code(201);
   }
 
-  async getAlbumLikesCountHandler({ params }) {
-    const likes = await this.service.getAlbumLikesCount(params.id);
-    return {
+  async getAlbumLikesCountHandler({ params }, h) {
+    const result = await this.service.getAlbumLikesCount(params.id);
+
+    const response = h.response({
       status: 'success',
-      data: likes,
-    };
+      data: result.data,
+    }).header('X-Data-Source', result.datasource);
+    return response;
   }
 }
 
